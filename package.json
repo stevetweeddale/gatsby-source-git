@@ -1,0 +1,20 @@
+{
+  "name": "gatsby-source-git",
+  "version": "1.0.0",
+  "description": "Source plugin for pulling data into Gatsby from Git repositories (hosted anywhere)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevetweeddale/gatsby-source-git.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stevetweeddale/gatsby-source-git/issues"
+  },
+  "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme"
+}
