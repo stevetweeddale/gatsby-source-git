@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/stevetweeddale/gatsby-source-git/issues"
   },
-  "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme"
+  "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme",
   "dependencies": {
     "fast-glob": "^2.2.3",
     "nodegit": "^0.23.0-alpha.1"
