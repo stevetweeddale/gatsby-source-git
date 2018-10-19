@@ -11,6 +11,8 @@ Requires [git](http://git-scm.com/downloads) to be installed, and to be callable
 
 Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't support shallow clones (see [libgit2/libgit2#3058](https://github.com/libgit2/libgit2/issues/3058)) which would have a significant effect on build times if you wanted to read files from git repositories with large histories.
 
+Only public repositories are supported right now. But a PR should be simple enough if you want that.
+
 ## Install
 
 Not published on npm yet, so for now:
