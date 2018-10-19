@@ -2,7 +2,6 @@
   "name": "gatsby-source-git",
   "version": "1.0.0",
   "description": "Source plugin for pulling data into Gatsby from Git repositories (hosted anywhere)",
-  "main": "gatsby-node.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,13 +11,14 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/stevetweeddale/gatsby-source-git/issues"
   },
   "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme",
   "dependencies": {
     "fast-glob": "^2.2.3",
-    "nodegit": "^0.23.0-alpha.1"
+    "gatsby-source-filesystem": "^2.0.4",
+    "simple-git": "^1.105.0"
   }
 }

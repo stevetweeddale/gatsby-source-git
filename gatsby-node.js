@@ -33,6 +33,8 @@ exports.sourceNodes = ({ actions: {createNode}, store, createNodeId, reporter },
 
   const createAndProcessNode = path => {
     const fileNodePromise = createFileNode(path, createNodeId, { name: name, path: localPath }).then(fileNode => {
+      // We cant reuse the "File" type, so give the nodes our own type.
+      fileNode.internal.type = `Git${fileNode.internal.type}`;
       createNode(fileNode);
       return null;
     });
