@@ -22,6 +22,7 @@
   "dependencies": {
     "fast-glob": "^2.2.3",
     "gatsby-source-filesystem": "^2.0.4",
-    "simple-git": "^1.105.0"
+    "simple-git": "^1.105.0",
+    "fs-extra": "^5.0.0"
   }
 }

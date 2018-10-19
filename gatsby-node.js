@@ -50,3 +50,5 @@ exports.sourceNodes = ({ actions: {createNode}, store, createNodeId, reporter },
     })
     .catch(err => reporter.error(err));
 };
+
+exports.setFieldsOnGraphQLNodeType = require(`./extend-node-type`);
