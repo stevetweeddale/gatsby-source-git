@@ -12,6 +12,9 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "peerDependencies": {
+    "gatsby": ">2.0.0-alpha"
+  },
   "bugs": {
     "url": "https://github.com/stevetweeddale/gatsby-source-git/issues"
   },
