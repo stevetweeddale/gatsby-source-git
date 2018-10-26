@@ -32,7 +32,7 @@ module.exports = {
       options: {
         name: `repo-one`,
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
-        // Optionally supply a branch/tag. If none supplied, you'll get the default.
+        // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
         // Tailor which files get imported.
         patterns: `docs/**`,

@@ -1,23 +1,34 @@
 const Git = require("simple-git/promise");
 const fastGlob = require("fast-glob");
 const fs = require("fs");
-const rmrf = require("rimraf");
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
 
 async function isAlreadyCloned(remote, path) {
-  const existingRemote = await Git(path).raw(['config', '--get', 'remote.origin.url']);
+  const existingRemote = await Git(path).listRemote(['--get-url']);
   return existingRemote.trim() == remote.trim();
 }
 
+async function getTargetBranch(repo, branch) {
+  if (typeof branch == `string`) {
+    return `origin/${branch}`;
+  }
+  else {
+    return repo.raw(["symbolic-ref", '--short', 'refs/remotes/origin/HEAD']);
+  }
+}
+
 async function getRepo(path, remote, branch) {
-  // If the directory doesn't exist, is empty, or is a matching clone: re-clone.
-  if (!fs.existsSync(path) || fs.readdirSync(path).length === 0 || await isAlreadyCloned(remote, path)) {
-    rmrf.sync(path);
-    let opts = [`--depth`, `1`];
-    if (typeof branch == `string`) {
-      opts.push(`--branch`, branch);
-    }
-    return Git().clone(remote, path, opts)
+  // If the directory doesn't exist or is empty, clone.
+  if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
+    await Git().clone(remote, path);
+    const repo = Git(path);
+    const target = await getTargetBranch(repo, branch);
+    return repo.checkout(target);
+  }
+  else if (await isAlreadyCloned(remote, path)) {
+    const repo = await Git(path);
+    const target = await getTargetBranch(repo, branch);
+    return repo.fetch().then(() => repo.checkout(target));
   }
   else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
