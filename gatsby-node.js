@@ -17,6 +17,10 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
+// @TODO: Re-investigate shallow clones. Gatsby already trashes the cache if the
+// plugin config changes, so we shouldn't need to handle the case of switching
+// branches. We'll either be cloning a repo, or fetching in new changes for the
+// current branch. Both of which should handle a shallow clone.
 async function getRepo(path, remote, branch) {
   // If the directory doesn't exist or is empty, clone.
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
