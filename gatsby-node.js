@@ -17,22 +17,23 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
-// @TODO: Re-investigate shallow clones. Gatsby already trashes the cache if the
-// plugin config changes, so we shouldn't need to handle the case of switching
-// branches. We'll either be cloning a repo, or fetching in new changes for the
-// current branch. Both of which should handle a shallow clone.
 async function getRepo(path, remote, branch) {
-  // If the directory doesn't exist or is empty, clone.
+  // If the directory doesn't exist or is empty, clone. This will be the case if
+  // our config has changed because Gatsby trashes the cache dir automatically
+  // in that case.
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
-    await Git().clone(remote, path);
-    const repo = Git(path);
-    const target = await getTargetBranch(repo, branch);
-    return repo.checkout(target);
+    let opts = [`--depth`, `1`];
+    if (typeof branch == `string`) {
+      opts.push(`--branch`, branch);
+    }
+    return Git().clone(remote, path, opts);
   }
   else if (await isAlreadyCloned(remote, path)) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
-    return repo.fetch().then(() => repo.checkout(target));
+    // Refresh our shallow clone with the latest commit.
+    return repo.fetch([`--depth`, `1`])
+      .then(() => repo.reset([`--hard`, target]));
   }
   else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
