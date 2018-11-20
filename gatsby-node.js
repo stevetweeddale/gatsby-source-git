@@ -2,6 +2,7 @@ const Git = require("simple-git/promise");
 const fastGlob = require("fast-glob");
 const fs = require("fs");
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
+const GitUrlParse = require("git-url-parse");
 
 async function isAlreadyCloned(remote, path) {
   const existingRemote = await Git(path).listRemote(['--get-url']);
@@ -49,6 +50,11 @@ exports.sourceNodes = ({ actions: {createNode}, store, createNodeId, reporter },
     const fileNodePromise = createFileNode(path, createNodeId, { name: name, path: localPath }).then(fileNode => {
       // We cant reuse the "File" type, so give the nodes our own type.
       fileNode.internal.type = `Git${fileNode.internal.type}`;
+      const parsedRemote = GitUrlParse(remote);
+      parsedRemote.git_suffix = false;
+      parsedRemote.webLink = parsedRemote.toString("https");
+      parsedRemote.ref = branch;
+      fileNode.remote = parsedRemote;
       createNode(fileNode);
       return null;
     });
