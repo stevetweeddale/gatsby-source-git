@@ -5,16 +5,15 @@ const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
 const GitUrlParse = require("git-url-parse");
 
 async function isAlreadyCloned(remote, path) {
-  const existingRemote = await Git(path).listRemote(['--get-url']);
+  const existingRemote = await Git(path).listRemote(["--get-url"]);
   return existingRemote.trim() == remote.trim();
 }
 
 async function getTargetBranch(repo, branch) {
   if (typeof branch == `string`) {
     return `origin/${branch}`;
-  }
-  else {
-    return repo.raw(["symbolic-ref", '--short', 'refs/remotes/origin/HEAD']);
+  } else {
+    return repo.raw(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
   }
 }
 
@@ -28,26 +27,35 @@ async function getRepo(path, remote, branch) {
       opts.push(`--branch`, branch);
     }
     return Git().clone(remote, path, opts);
-  }
-  else if (await isAlreadyCloned(remote, path)) {
+  } else if (await isAlreadyCloned(remote, path)) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
     // Refresh our shallow clone with the latest commit.
-    return repo.fetch([`--depth`, `1`])
+    return repo
+      .fetch([`--depth`, `1`])
       .then(() => repo.reset([`--hard`, target]));
-  }
-  else {
+  } else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
   }
 }
 
-
-exports.sourceNodes = ({ actions: {createNode}, store, createNodeId, reporter }, { name, remote, branch, patterns = `**` }) => {
+exports.sourceNodes = (
+  { actions: { createNode }, store, createNodeId, reporter },
+  { name, remote, branch, patterns = `**` }
+) => {
   const programDir = store.getState().program.directory;
-  const localPath = require('path').join(programDir, `.cache`, `gatsby-source-git`, name);
+  const localPath = require("path").join(
+    programDir,
+    `.cache`,
+    `gatsby-source-git`,
+    name
+  );
 
   const createAndProcessNode = path => {
-    const fileNodePromise = createFileNode(path, createNodeId, { name: name, path: localPath }).then(fileNode => {
+    const fileNodePromise = createFileNode(path, createNodeId, {
+      name: name,
+      path: localPath
+    }).then(fileNode => {
       // We cant reuse the "File" type, so give the nodes our own type.
       fileNode.internal.type = `Git${fileNode.internal.type}`;
       const parsedRemote = GitUrlParse(remote);
@@ -65,7 +73,7 @@ exports.sourceNodes = ({ actions: {createNode}, store, createNodeId, reporter },
     .then(() => {
       return fastGlob(patterns, { cwd: localPath, absolute: true });
     })
-    .then((files) => {
+    .then(files => {
       return Promise.all(files.map(createAndProcessNode));
     })
     .catch(err => reporter.error(err));
