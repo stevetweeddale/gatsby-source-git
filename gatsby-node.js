@@ -26,20 +26,22 @@ async function getRepo(path, remote, branch) {
     if (typeof branch == `string`) {
       opts.push(`--branch`, branch);
     }
-    return Git().clone(remote, path, opts);
+    await Git().clone(remote, path, opts);
+    return Git(path);
   } else if (await isAlreadyCloned(remote, path)) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
     // Refresh our shallow clone with the latest commit.
-    return repo
+    await repo
       .fetch([`--depth`, `1`])
       .then(() => repo.reset([`--hard`, target]));
+    return repo;
   } else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
   }
 }
 
-exports.sourceNodes = (
+exports.sourceNodes = async (
   { actions: { createNode }, store, createNodeId, reporter },
   { name, remote, branch, patterns = `**` }
 ) => {
@@ -50,33 +52,41 @@ exports.sourceNodes = (
     `gatsby-source-git`,
     name
   );
+  const parsedRemote = GitUrlParse(remote);
 
-  const createAndProcessNode = path => {
-    const fileNodePromise = createFileNode(path, createNodeId, {
-      name: name,
-      path: localPath
-    }).then(fileNode => {
-      // We cant reuse the "File" type, so give the nodes our own type.
-      fileNode.internal.type = `Git${fileNode.internal.type}`;
-      const parsedRemote = GitUrlParse(remote);
-      parsedRemote.git_suffix = false;
-      parsedRemote.webLink = parsedRemote.toString("https");
-      parsedRemote.ref = branch;
-      fileNode.remote = parsedRemote;
-      createNode(fileNode);
-      return null;
-    });
-    return fileNodePromise;
-  };
+  let repo;
+  try {
+    repo = await getRepo(localPath, remote, branch);
+  } catch (e) {
+    return reporter.error(e);
+  }
 
-  return getRepo(localPath, remote, branch)
-    .then(() => {
-      return fastGlob(patterns, { cwd: localPath, absolute: true });
+  parsedRemote.git_suffix = false;
+  parsedRemote.webLink = parsedRemote.toString("https");
+  let ref = await repo.raw(["rev-parse", "--abbrev-ref", "HEAD"]);
+  parsedRemote.ref = ref.trim();
+
+  const repoFiles = await fastGlob(patterns, {
+    cwd: localPath,
+    absolute: true
+  });
+
+  return Promise.all(
+    repoFiles.map(path => {
+      const fileNodePromise = createFileNode(path, createNodeId, {
+        name: name,
+        path: localPath
+      }).then(fileNode => {
+        // We cant reuse the "File" type, so give the nodes our own type.
+        fileNode.internal.type = `Git${fileNode.internal.type}`;
+        // Add some helpful context to each node.
+        fileNode.remote = { ...parsedRemote };
+        createNode(fileNode);
+        return null;
+      });
+      return fileNodePromise;
     })
-    .then(files => {
-      return Promise.all(files.map(createAndProcessNode));
-    })
-    .catch(err => reporter.error(err));
+  );
 };
 
 exports.setFieldsOnGraphQLNodeType = require(`./extend-node-type`);
