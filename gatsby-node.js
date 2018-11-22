@@ -3,6 +3,7 @@ const fastGlob = require("fast-glob");
 const fs = require("fs");
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
 const GitUrlParse = require("git-url-parse");
+const cloneDeep = require("lodash.clonedeep");
 
 async function isAlreadyCloned(remote, path) {
   const existingRemote = await Git(path).listRemote(["--get-url"]);
@@ -80,7 +81,7 @@ exports.sourceNodes = async (
         // We cant reuse the "File" type, so give the nodes our own type.
         fileNode.internal.type = `Git${fileNode.internal.type}`;
         // Add some helpful context to each node.
-        fileNode.remote = { ...parsedRemote };
+        fileNode.remote = cloneDeep(parsedRemote);
         createNode(fileNode);
         return null;
       });
