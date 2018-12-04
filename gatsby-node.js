@@ -43,7 +43,13 @@ async function getRepo(path, remote, branch) {
 }
 
 exports.sourceNodes = async (
-  { actions: { createNode }, store, createNodeId, reporter },
+  {
+    actions: { createNode },
+    store,
+    createNodeId,
+    createContentDigest,
+    reporter
+  },
   { name, remote, branch, patterns = `**` }
 ) => {
   const programDir = store.getState().program.directory;
@@ -72,22 +78,34 @@ exports.sourceNodes = async (
     absolute: true
   });
 
-  return Promise.all(
-    repoFiles.map(path => {
-      const fileNodePromise = createFileNode(path, createNodeId, {
-        name: name,
-        path: localPath
-      }).then(fileNode => {
-        // We cant reuse the "File" type, so give the nodes our own type.
-        fileNode.internal.type = `Git${fileNode.internal.type}`;
-        // Add some helpful context to each node.
-        fileNode.remote = cloneDeep(parsedRemote);
-        createNode(fileNode);
-        return null;
-      });
-      return fileNodePromise;
+  const remoteId = createNodeId(`git-remote-${name}`);
+
+  await createNode(
+    Object.assign(parsedRemote, {
+      id: remoteId,
+      parent: null,
+      children: [],
+      internal: {
+        type: `GitRemote`,
+        content: JSON.stringify(parsedRemote),
+        contentDigest: createContentDigest(parsedRemote)
+      }
     })
   );
+
+  const createAndProcessNode = path => {
+    return createFileNode(path, createNodeId, {
+      name: name,
+      path: localPath
+    }).then(fileNode => {
+      fileNode.gitRemote___NODE = remoteId;
+      return createNode(fileNode, {
+        name: `gatsby-source-filesystem`
+      });
+    });
+  };
+
+  return Promise.all(repoFiles.map(createAndProcessNode));
 };
 
-exports.setFieldsOnGraphQLNodeType = require(`./extend-node-type`);
+exports.onCreateNode;
