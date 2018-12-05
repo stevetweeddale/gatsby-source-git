@@ -70,6 +70,7 @@ exports.sourceNodes = async (
 
   parsedRemote.git_suffix = false;
   parsedRemote.webLink = parsedRemote.toString("https");
+  delete parsedRemote.git_suffix;
   let ref = await repo.raw(["rev-parse", "--abbrev-ref", "HEAD"]);
   parsedRemote.ref = ref.trim();
 
