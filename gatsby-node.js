@@ -80,6 +80,8 @@ exports.sourceNodes = async (
 
   const remoteId = createNodeId(`git-remote-${name}`);
 
+  // Create a single graph node for this git remote.
+  // Filenodes sourced from it will get a field pointing back to it.
   await createNode(
     Object.assign(parsedRemote, {
       id: remoteId,
@@ -98,7 +100,10 @@ exports.sourceNodes = async (
       name: name,
       path: localPath
     }).then(fileNode => {
+      // Add a link to the git remote node
       fileNode.gitRemote___NODE = remoteId;
+      // Then create the node, as if it were created by the gatsby-source
+      // filesystem plugin.
       return createNode(fileNode, {
         name: `gatsby-source-filesystem`
       });

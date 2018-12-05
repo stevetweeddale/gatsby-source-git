@@ -2,8 +2,22 @@
 
 Source plugin for pulling files into the Gatsby graph from abitrary Git repositories (hosted anywhere). This is useful if the markdown files you wish to render can't live within your gatsby codebase, or if need to aggregate content from disparate repositories.
 
+It clones the repo(s) you configure (a shallow clone, into your cache folder if
+you're interested), and then sucks the files into the graph as `File` nodes, as
+if you'd configured
+[`gatsby-source-filesystem`](https://www.gatsbyjs.org/packages/gatsby-source-filesystem/)
+on that directory. As such, all the tranformer plugins that operate on files
+should work exactly as they do with `gatsby-source-filesystem` eg with
+`gatsby-transformer-remark`, `gatsby-transformer-json` etc.
 
-It clones the repo(s) you configure (a shallow clone, into your cache folder if you're interested), and then sucks in the files within in a very similar manner to `gatsby-source-filesystem`. As such, the nodes it creates should get picked up by all the tranformer plugins you'd hope, like `gatsby-transformer-remark`, `gatsby-transformer-json` etc.
+The only difference is that the `File` nodes created by this plugin will
+also have a `gitRemote` field, which will provide you with various bits of
+Git related information. The fields on the `gitRemote` node are
+mostly provided by
+[IonicaBazau/git-url-parse](https://github.com/IonicaBizau/git-url-parse), with
+the addition of `ref` and `weblink` fields, which are
+the 2 main things you probably want if you're constructing "edit on github"
+style links.
 
 ## Requirements
 
@@ -34,8 +48,8 @@ module.exports = {
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
         // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
-        // Tailor which files get imported.
-        patterns: `docs/**`,
+        // Tailor which files get imported eg. import the docs folder from a codebase.
+        patterns: `docs/**`
       }
     },
     {
@@ -44,20 +58,22 @@ module.exports = {
         name: `repo-two`,
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
         // Multiple patterns and negation supported. See https://github.com/mrmlnc/fast-glob
-        patterns: [`*`, `!*.md`],
+        patterns: [`*`, `!*.md`]
       }
-    },
-  ],
-}
+    }
+  ]
+};
 ```
 
 ## How to query
 
-You can query file nodes like the following:
+You can query file nodes exactly as you would node query for nodes created with
+[`gatsby-source-filesystem`](https://www.gatsbyjs.org/packages/gatsby-source-filesystem/),
+eg:
 
 ```graphql
 {
-  allGitFile {
+  allFile {
     edges {
       node {
         extension
@@ -69,16 +85,34 @@ You can query file nodes like the following:
 }
 ```
 
-To filter by the `name` you specified in the config, use `sourceInstanceName`:
+Similarly, you can filter by the `name` you specified in the config by using
+`sourceInstanceName`:
 
 ```graphql
 {
-  allGitFile(filter: { sourceInstanceName: { eq: "repo-one" } }) {
+  allFile(filter: { sourceInstanceName: { eq: "repo-one" } }) {
     edges {
       node {
         extension
         dir
         modifiedTime
+      }
+    }
+  }
+}
+```
+
+And access some information about the git repo:
+
+```graphql
+{
+  allFile {
+    edges {
+      node {
+        gitRemote {
+          webLink
+          ref
+        }
       }
     }
   }
