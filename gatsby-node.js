@@ -85,6 +85,7 @@ exports.sourceNodes = async (
   await createNode(
     Object.assign(parsedRemote, {
       id: remoteId,
+      sourceInstanceName: name,
       parent: null,
       children: [],
       internal: {
