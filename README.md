@@ -60,6 +60,18 @@ module.exports = {
         // Multiple patterns and negation supported. See https://github.com/mrmlnc/fast-glob
         patterns: [`*`, `!*.md`]
       }
+    },
+    {
+      resolve: `gatsby-source-git`,
+      options: {
+        name: `repo-three`,
+        remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
+        // Multiple "sourceInstanceName" on the same repo via object.
+        patterns: {
+          articles: `docs/articles/*.md`,
+          authors: `docs/authors/*.md`,
+        }
+      }
     }
   ]
 };

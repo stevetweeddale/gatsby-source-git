@@ -1,5 +1,6 @@
 const Git = require("simple-git/promise");
 const fastGlob = require("fast-glob");
+const { join } = require("path");
 const fs = require("fs");
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
 const GitUrlParse = require("git-url-parse");
@@ -41,6 +42,28 @@ async function getRepo(path, remote, branch) {
   }
 }
 
+const toArray = x => (Array.isArray(x) ? x : [x]).filter(a => a);
+const patternEntry = ([name, pattern]) => ({ name, pattern });
+const parsePatterns = (patterns, name) => {
+  if (Array.isArray(patterns)) {
+    return patterns.filter(a => typeof a === "string").map(parsePatterns);
+  }
+  if (typeof patterns === "string") return patternEntry([name, patterns]);
+  if (typeof patterns === "object") {
+    return Object.entries(patterns).map(patternEntry);
+  }
+};
+
+const getLocalFiles = (cwd, patterns, defaultName) => {
+  const patternGroups = toArray(parsePatterns(patterns, defaultName));
+  return Promise.all(
+    patternGroups.map(async ({ name, pattern }) => {
+      const files = await fastGlob(pattern, { cwd, absolute: true });
+      return files.map(path => ({ path, name }));
+    })
+  );
+};
+
 exports.sourceNodes = async (
   {
     actions: { createNode },
@@ -52,12 +75,7 @@ exports.sourceNodes = async (
   { name, remote, branch, patterns = `**` }
 ) => {
   const programDir = store.getState().program.directory;
-  const localPath = require("path").join(
-    programDir,
-    `.cache`,
-    `gatsby-source-git`,
-    name
-  );
+  const localPath = join(programDir, `.cache`, `gatsby-source-git`, name);
   const parsedRemote = GitUrlParse(remote);
 
   let repo;
@@ -73,10 +91,7 @@ exports.sourceNodes = async (
   let ref = await repo.raw(["rev-parse", "--abbrev-ref", "HEAD"]);
   parsedRemote.ref = ref.trim();
 
-  const repoFiles = await fastGlob(patterns, {
-    cwd: localPath,
-    absolute: true
-  });
+  const repoFiles = await getLocalFiles(localPath, patterns, name);
 
   const remoteId = createNodeId(`git-remote-${name}`);
 
@@ -96,7 +111,7 @@ exports.sourceNodes = async (
     })
   );
 
-  const createAndProcessNode = path => {
+  const createAndProcessNode = ({ path, name }) => {
     return createFileNode(path, createNodeId, {
       name: name,
       path: localPath
