@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-git",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Gatsby plugin for pulling files into Gatsby from Git repositories",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
