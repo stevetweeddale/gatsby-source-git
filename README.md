@@ -29,9 +29,7 @@ Only public repositories are supported right now. But a PR should be simple enou
 
 ## Install
 
-Not published on npm yet, so for now:
-
-`npm install --save stevetweeddale/gatsby-source-git`
+`npm install --save gatsby-source-git`
 
 ## How to use
 
