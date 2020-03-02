@@ -13,7 +13,7 @@ async function getTargetBranch(repo, branch) {
   if (typeof branch == `string`) {
     return `origin/${branch}`;
   } else {
-    return repo.raw(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
+    return repo.raw(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]).then(result => result.trim());
   }
 }
 
