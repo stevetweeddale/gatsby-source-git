@@ -46,6 +46,12 @@ module.exports = {
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
         // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
+
+        // (Optional) Configure the checkout/fetch depth when refreshing from
+        // upstream repository. To fetch the entire history, use 'all' here.
+        // The default is to perform a shallow clone (i.e. depth = 1).
+        // depth: 1,
+
         // Tailor which files get imported eg. import the docs folder from a codebase.
         patterns: `docs/**`,
 

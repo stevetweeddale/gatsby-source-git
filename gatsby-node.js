@@ -32,12 +32,15 @@ async function parseContributors(repo, path) {
   }));
 }
 
-async function getRepo(path, remote, branch) {
+async function getRepo(path, remote, branch, depth) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
   // in that case.
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
-    let opts = [`--depth`, `1`];
+    let opts = [];
+    if ( depth && depth !== 'all' ) {
+      opts.push(`--depth`, depth);
+    }
     if (typeof branch == `string`) {
       opts.push(`--branch`, branch);
     }
@@ -47,9 +50,12 @@ async function getRepo(path, remote, branch) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
     // Refresh our shallow clone with the latest commit.
-    await repo
-      .fetch([`--depth`, `1`])
-      .then(() => repo.reset([`--hard`, target]));
+    if( depth && depth !== 'all' ) {
+      await repo.fetch([`--depth`, depth]);
+    } else {
+      await repo.fetch();
+    }
+    await repo.reset([`--hard`, target]);
     return repo;
   } else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
@@ -64,7 +70,7 @@ exports.sourceNodes = async (
     createContentDigest,
     reporter
   },
-  { name, remote, branch, patterns = `**`, contributors }
+  { name, remote, branch, patterns = `**`, depth = 1, contributors }
 ) => {
   const programDir = store.getState().program.directory;
   const localPath = require("path").join(
@@ -77,7 +83,7 @@ exports.sourceNodes = async (
 
   let repo;
   try {
-    repo = await getRepo(localPath, remote, branch);
+    repo = await getRepo(localPath, remote, branch, depth);
   } catch (e) {
     return reporter.error(e);
   }
