@@ -47,11 +47,6 @@ module.exports = {
         // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
 
-        // (Optional) Configure the checkout/fetch depth when refreshing from
-        // upstream repository. To fetch the entire history, use 'all' here.
-        // The default is to perform a shallow clone (i.e. depth = 1).
-        // depth: 1,
-
         // Tailor which files get imported eg. import the docs folder from a codebase.
         patterns: `docs/**`,
 
@@ -68,6 +63,11 @@ module.exports = {
         //    'path'          - Collect contributors for each file
         //    'all'           - Perform both 'repo' and 'path' collection
         // contributors: false,
+
+        // (Optional) Configure the checkout/fetch depth when refreshing from
+        // upstream repository. To fetch the entire history, use 'all' here.
+        // The default is to perform a shallow clone (i.e. depth = 1).
+        // depth: 1,
       }
     },
     {
@@ -145,7 +145,7 @@ Contributions are obtained directly from the git log, summarized, and made avail
 * `name` - The name of this contributor (e.g. "Jane Developer")
 * `email` - The email address for the contributor (e.g. jane@company.com)
 
-> Note: By default this plugin only performs a shallow checkout (e.g. `--depth 1`) so you will only get the latest contributor for each file if using the `contributors: path` plugin option above.
+> Note: By default this plugin only performs a shallow checkout (e.g. `--depth 1`) so you will only get the latest contributor for each file if using the `contributors: path` plugin option above. Use the `depth: all` option (or some other value) to get more than just the latest log entries.
 
 ```graphql
 {
