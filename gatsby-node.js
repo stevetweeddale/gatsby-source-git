@@ -17,6 +17,21 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
+async function parseContributors(repo, path) {
+  let args = ['shortlog', '-n', '-s', '-e', 'HEAD'];
+  if (path) {
+    args.push('--', path);
+  }
+  return repo.raw(args).then(result => result.trim().split('\n').map(x => {
+    let items = x.trim().split(/\s*(\d+)\s+(.+?)\s+<([^>]+)>\s*/g).slice(1, -1);
+    return {
+      count: parseInt(items[0]),
+      name: items[1],
+      email: items[2]
+    };
+  }));
+}
+
 async function getRepo(path, remote, branch) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
@@ -49,7 +64,7 @@ exports.sourceNodes = async (
     createContentDigest,
     reporter
   },
-  { name, remote, branch, patterns = `**` }
+  { name, remote, branch, patterns = `**`, contributors }
 ) => {
   const programDir = store.getState().program.directory;
   const localPath = require("path").join(
@@ -80,6 +95,14 @@ exports.sourceNodes = async (
 
   const remoteId = createNodeId(`git-remote-${name}`);
 
+  let repoContributors = undefined;
+  if (contributors && (contributors == 'all' || contributors === 'repo')) {
+    repoContributors = {
+      gitContributors: await parseContributors(repo)
+    };
+  }
+  const wantFileContributors = contributors && (contributors == 'all' || contributors == 'path');
+
   // Create a single graph node for this git remote.
   // Filenodes sourced from it will get a field pointing back to it.
   await createNode(
@@ -93,21 +116,27 @@ exports.sourceNodes = async (
         content: JSON.stringify(parsedRemote),
         contentDigest: createContentDigest(parsedRemote)
       }
-    })
+    }, repoContributors)
   );
 
-  const createAndProcessNode = path => {
-    return createFileNode(path, createNodeId, {
+  const createAndProcessNode = async path => {
+    let fileNode = await createFileNode(path, createNodeId, {
       name: name,
       path: localPath
-    }).then(fileNode => {
-      // Add a link to the git remote node
-      fileNode.gitRemote___NODE = remoteId;
-      // Then create the node, as if it were created by the gatsby-source
-      // filesystem plugin.
-      return createNode(fileNode, {
-        name: `gatsby-source-filesystem`
-      });
+    });
+
+    // Add contributors if requested.
+    if (wantFileContributors) {
+      fileNode.gitContributors = await parseContributors(repo, path);
+    }
+
+    // Add a link to the git remote node
+    fileNode.gitRemote___NODE = remoteId;
+
+    // Then create the node, as if it were created by the gatsby-source
+    // filesystem plugin.
+    return createNode(fileNode, {
+      name: `gatsby-source-filesystem`
     });
   };
 
