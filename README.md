@@ -46,9 +46,11 @@ module.exports = {
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
         // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
+
         // (Optional) Specify a local path for the repo. If omitted, it will
         // default to using a directory within the local Gatsby cache.
-        local: '/explicit/path/to/repo-one'
+        // local: '/explicit/path/to/repo-one',
+
         // Tailor which files get imported eg. import the docs folder from a codebase.
         patterns: `docs/**`
       }
