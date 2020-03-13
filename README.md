@@ -33,25 +33,36 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
 
 ## How to use
 
+### Plugin options
+
+- `name`: A machine name label for each plugin instance.
+- `remote`: The url to clone from.
+- `branch` (optional): The branch to use. If none supplied, we try to use the
+  'default' branch.
+- `patterns` (optional): Passed to
+  [fast-glob](https://github.com/mrmlnc/fast-glob) to determine which files get
+  sucked into the graph.
+- `local` (optional): Specify the local path for the cloned repo. If omitted,
+  it will default to a directory within the local Gatsby cache. Note that using
+  a location outside the cache will prevent you changing the branch via
+  gatsby-config.js. You will need to synchronise the branch of the local
+  checkout yourself. On the plus side, it will prevent your local repo
+  getting trashed when Gatsby clears the cache, which can speed things up.
+
+### Example gatsby-config.js
+
 ```javascript
-// In your gatsby-config.js
 module.exports = {
   plugins: [
-    // You can have multiple instances of this plugin
-    // to read source nodes from different repositories.
+    // You can have multiple instances of this plugin to read source files from
+    // different repositories or locations within a repository.
     {
       resolve: `gatsby-source-git`,
       options: {
         name: `repo-one`,
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
-        // Optionally supply a branch. If none supplied, you'll get the default branch.
         branch: `develop`,
-
-        // (Optional) Specify a local path for the repo. If omitted, it will
-        // default to using a directory within the local Gatsby cache.
-        // local: '/explicit/path/to/repo-one',
-
-        // Tailor which files get imported eg. import the docs folder from a codebase.
+        // Only import the docs folder from a codebase.
         patterns: `docs/**`
       }
     },
@@ -60,6 +71,9 @@ module.exports = {
       options: {
         name: `repo-two`,
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
+        // Specify the local checkout location, to avoid it being trashed on
+        // cache clears.
+        local: '/explicit/path/to/repo-two',
         // Multiple patterns and negation supported. See https://github.com/mrmlnc/fast-glob
         patterns: [`*`, `!*.md`]
       }
