@@ -27,8 +27,6 @@ Requires [git](http://git-scm.com/downloads) to be installed, and to be callable
 
 Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't support shallow clones (see [libgit2/libgit2#3058](https://github.com/libgit2/libgit2/issues/3058)) which would have a significant effect on build times if you wanted to read files from git repositories with large histories.
 
-Only public repositories are supported right now. But a PR should be simple enough if you want that.
-
 ## Install
 
 `npm install --save gatsby-source-git`
@@ -71,6 +69,20 @@ module.exports = {
 ```
 
 This will result in `File` nodes being put in your data graph, it's then up to you to do whatever it is you want to do with that data.
+
+## Private repositories
+
+Most git hosting providers support authentication via URL, either in the form of username and password or more commonly access tokens. So to use a private github repository as an example, you would firstly [generate a personal access token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line). Now you don't want that in your repo, so instead you'd [set an OS environment variable](https://www.gatsbyjs.org/docs/environment-variables/#server-side-nodejs) and then read that environment variable into your plugin config something like:
+
+```javascript
+{
+  resolve: `gatsby-source-git`,
+  options: {
+    name: `my-repo`,
+    remote: `https://myuser:${process.env.GITHUB_TOKEN}@github.com/my-repo`,
+  },
+}
+```
 
 ## How to query
 
