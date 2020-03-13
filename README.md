@@ -19,6 +19,8 @@ the addition of `ref` and `weblink` fields, which are
 the 2 main things you probably want if you're constructing "edit on github"
 style links.
 
+N.B. Although with respect to sourcing this works as a drop-in replacement for `gatsby-source-filesystem`, there are a number of helpers included in that module (`createFilePath`, `createRemoteFileNode`, `createFileNodeFromBuffer`) that are not duplicated here – but you can still import and use them from there as needed.
+
 ## Requirements
 
 Requires [git](http://git-scm.com/downloads) to be installed, and to be callable using the command `git`.
@@ -67,6 +69,8 @@ module.exports = {
   ]
 };
 ```
+
+This will result in `File` nodes being put in your data graph, it's then up to you to do whatever it is you want to do with that data.
 
 ## How to query
 
@@ -121,3 +125,7 @@ And access some information about the git repo:
   }
 }
 ```
+
+## Creating pages
+
+If you want to programatically create pages on your site from the files in your git repo, you should be able to follow the standard examples, such as [part 7 of the Gatsby tutorial](https://www.gatsbyjs.org/tutorial/part-seven/) or [the standard docs page](https://www.gatsbyjs.org/docs/creating-and-modifying-pages/#creating-pages-in-gatsby-nodejs).
