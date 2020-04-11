@@ -13,10 +13,11 @@ async function getTargetBranch(repo, branch) {
   if (typeof branch !== `string`) {
     // Find either the branch name or HEAD if in detached head.
     branch = (await repo.raw(["rev-parse", "--abbrev-ref", "HEAD"])).trim();
-    if (branch === "HEAD") {
-      // Detached head has no branch
-      return branch;
-    }
+  }
+
+  if (branch === "HEAD") {
+    // Detached head has no branch
+    return branch;
   }
 
   // Turn 'branch' into 'origin/branch' (or whatever it's tracking)
