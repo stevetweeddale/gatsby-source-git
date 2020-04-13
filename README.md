@@ -48,6 +48,23 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
   gatsby-config.js. You will need to synchronise the branch of the local
   checkout yourself. On the plus side, it will prevent your local repo
   getting trashed when Gatsby clears the cache, which can speed things up.
+- `contributors` (optional): Collect the contributor list for the repo and/or for each
+  file that is checked out. This will be available to Gatsby queries
+  as part of the File node (see [Querying for Contributors](#Querying-for-Contributors) below). Note: for larger repository
+  histories this operation may take a bit. Also, the default checkout
+  depth is 1, so unless you change it, you'll only ever see the last
+  contributor when using the `"path"` option.
+
+  The valid options for `contributors` are:
+  - `undefined` or `false` (Default): Do not collect contributor records
+  - `"repo"`: Collect contributors only for the repo itself
+  - `"path"`: Collect contributors for each file
+  - `"all"`: Perform both `"repo"` and `"path"` collection
+
+- `depth` (optional): Configure the checkout/fetch depth when refreshing from
+  upstream repository. To fetch the entire history, use 'all' here.
+  The default is to perform a shallow clone (i.e. depth = 1).
+
 
 ### Example gatsby-config.js
 
@@ -65,25 +82,6 @@ module.exports = {
 
         // Only import the docs folder from a codebase.
         patterns: `docs/**`,
-
-        // (Optional) Collect the contributor list for the repo and/or for each
-        // file that is checked out. This will be available to Gatsby queries
-        // as part of the File node (see below). Note: for larger repository
-        // histories this operation may take a bit. Also, the default checkout
-        // depth is 1, so unless you change it, you'll only ever see the last
-        // contributor when using the 'path' option.
-
-        // Options are:
-        //    undefined/false - Do not collect contributor records (Default)
-        //    'repo'          - Collect contributors only for the repo itself
-        //    'path'          - Collect contributors for each file
-        //    'all'           - Perform both 'repo' and 'path' collection
-        // contributors: false,
-
-        // (Optional) Configure the checkout/fetch depth when refreshing from
-        // upstream repository. To fetch the entire history, use 'all' here.
-        // The default is to perform a shallow clone (i.e. depth = 1).
-        // depth: 1,
       }
     },
     {
