@@ -205,6 +205,9 @@ Contributions are obtained directly from the git log, summarized, and made avail
 }
 ```
 
+Further, the underlying git command is capable of doing some amount of person-matching in order to clean up the contributors list and merge authors in a noisy history via a `.mailmap` file. Please see the [documentation for git shortlog](https://git-scm.com/docs/git-shortlog) for futher details.
+
+
 ## Creating pages
 
 If you want to programatically create pages on your site from the files in your git repo, you should be able to follow the standard examples, such as [part 7 of the Gatsby tutorial](https://www.gatsbyjs.org/tutorial/part-seven/) or [the standard docs page](https://www.gatsbyjs.org/docs/creating-and-modifying-pages/#creating-pages-in-gatsby-nodejs).
