@@ -22,7 +22,9 @@ async function parseContributors(repo, path) {
   if (path) {
     args.push('--', path);
   }
-  return repo.raw(args).then(result => result.trim().split('\n').map(x => {
+  // shortlog may return undefined if the file hasn't been committed (in which case,
+  // there are no contributors to be had)
+  return repo.raw(args).then(result => (result || '').trim().split('\n').map(x => {
     let items = x.trim().split(/\s*(\d+)\s+(.+?)\s+<([^>]+)>\s*/g).slice(1, -1);
     return {
       count: parseInt(items[0]),
