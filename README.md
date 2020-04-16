@@ -48,6 +48,23 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
   gatsby-config.js. You will need to synchronise the branch of the local
   checkout yourself. On the plus side, it will prevent your local repo
   getting trashed when Gatsby clears the cache, which can speed things up.
+- `contributors` (optional): Collect the contributor list for the repo and/or for each
+  file that is checked out. This will be available to Gatsby queries
+  as part of the File node (see [Querying for Contributors](#Querying-for-Contributors) below). Note: for larger repository
+  histories this operation may take a bit. Also, the default checkout
+  depth is 1, so unless you change it, you'll only ever see the last
+  contributor when using the `"path"` option.
+
+  The valid options for `contributors` are:
+  - `undefined` or `false` (Default): Do not collect contributor records
+  - `"repo"`: Collect contributors only for the repo itself
+  - `"path"`: Collect contributors for each file
+  - `"all"`: Perform both `"repo"` and `"path"` collection
+
+- `depth` (optional): Configure the checkout/fetch depth when refreshing from
+  upstream repository. To fetch the entire history, use 'all' here.
+  The default is to perform a shallow clone (i.e. depth = 1).
+
 
 ### Example gatsby-config.js
 
@@ -152,6 +169,45 @@ And access some information about the git repo:
 }
 ```
 
+### Querying for Contributors
+
+Contributions are obtained directly from the git log, summarized, and made available to the GraphQL language as part of the File node created (or for the repo itself). The available fields are (again, according to the git log):
+
+* `count` - The number of commits/contributions for this person
+* `name` - The name of this contributor (e.g. "Jane Developer")
+* `email` - The email address for the contributor (e.g. jane@company.com)
+
+> Note: By default this plugin only performs a shallow checkout (e.g. `--depth 1`) so you will only get the latest contributor for each file if using the `contributors: path` plugin option above. Use the `depth: all` option (or some other value) to get more than just the latest log entries.
+
+```graphql
+{
+  allFile {
+    edges {
+      node {
+        gitContributors {
+          count
+          name
+          email
+        }
+        gitRemote {
+          webLink
+          ref
+          gitContributors {
+            count
+            name
+            email
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Further, the underlying git command is capable of doing some amount of person-matching in order to clean up the contributors list and merge authors in a noisy history via a `.mailmap` file. Please see the [documentation for git shortlog](https://git-scm.com/docs/git-shortlog) for futher details.
+
+
 ## Creating pages
 
 If you want to programatically create pages on your site from the files in your git repo, you should be able to follow the standard examples, such as [part 7 of the Gatsby tutorial](https://www.gatsbyjs.org/tutorial/part-seven/) or [the standard docs page](https://www.gatsbyjs.org/docs/creating-and-modifying-pages/#creating-pages-in-gatsby-nodejs).
+

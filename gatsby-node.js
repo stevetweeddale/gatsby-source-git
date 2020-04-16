@@ -17,12 +17,32 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
-async function getRepo(path, remote, branch) {
+async function parseContributors(repo, path) {
+  let args = ['shortlog', '-n', '-s', '-e', 'HEAD'];
+  if (path) {
+    args.push('--', path);
+  }
+  // shortlog may return undefined if the file hasn't been committed (in which case,
+  // there are no contributors to be had)
+  return repo.raw(args).then(result => (result || '').trim().split('\n').map(x => {
+    let items = x.trim().split(/\s*(\d+)\s+(.+?)\s+<([^>]+)>\s*/g).slice(1, -1);
+    return {
+      count: parseInt(items[0]),
+      name: items[1],
+      email: items[2]
+    };
+  }));
+}
+
+async function getRepo(path, remote, branch, depth) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
   // in that case.
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
-    let opts = [`--depth`, `1`];
+    let opts = [];
+    if ( depth && depth !== 'all' ) {
+      opts.push(`--depth`, depth);
+    }
     if (typeof branch == `string`) {
       opts.push(`--branch`, branch);
     }
@@ -32,9 +52,12 @@ async function getRepo(path, remote, branch) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
     // Refresh our shallow clone with the latest commit.
-    await repo
-      .fetch([`--depth`, `1`])
-      .then(() => repo.reset([`--hard`, target]));
+    if( depth && depth !== 'all' ) {
+      await repo.fetch([`--depth`, depth]);
+    } else {
+      await repo.fetch();
+    }
+    await repo.reset([`--hard`, target]);
     return repo;
   } else {
     throw new Error(`Can't clone to target destination: ${localPath}`);
@@ -49,7 +72,7 @@ exports.sourceNodes = async (
     createContentDigest,
     reporter
   },
-  { name, remote, branch, patterns = `**`, local }
+  { name, remote, branch, patterns = `**`, local, depth = 1, contributors }
 ) => {
   const programDir = store.getState().program.directory;
   const localPath = local || require("path").join(
@@ -62,7 +85,7 @@ exports.sourceNodes = async (
 
   let repo;
   try {
-    repo = await getRepo(localPath, remote, branch);
+    repo = await getRepo(localPath, remote, branch, depth);
   } catch (e) {
     return reporter.error(e);
   }
@@ -80,6 +103,14 @@ exports.sourceNodes = async (
 
   const remoteId = createNodeId(`git-remote-${name}`);
 
+  let repoContributors = undefined;
+  if (contributors && (contributors == 'all' || contributors === 'repo')) {
+    repoContributors = {
+      gitContributors: await parseContributors(repo)
+    };
+  }
+  const wantFileContributors = contributors && (contributors == 'all' || contributors == 'path');
+
   // Create a single graph node for this git remote.
   // Filenodes sourced from it will get a field pointing back to it.
   await createNode(
@@ -93,21 +124,27 @@ exports.sourceNodes = async (
         content: JSON.stringify(parsedRemote),
         contentDigest: createContentDigest(parsedRemote)
       }
-    })
+    }, repoContributors)
   );
 
-  const createAndProcessNode = path => {
-    return createFileNode(path, createNodeId, {
+  const createAndProcessNode = async path => {
+    let fileNode = await createFileNode(path, createNodeId, {
       name: name,
       path: localPath
-    }).then(fileNode => {
-      // Add a link to the git remote node
-      fileNode.gitRemote___NODE = remoteId;
-      // Then create the node, as if it were created by the gatsby-source
-      // filesystem plugin.
-      return createNode(fileNode, {
-        name: `gatsby-source-filesystem`
-      });
+    });
+
+    // Add contributors if requested.
+    if (wantFileContributors) {
+      fileNode.gitContributors = await parseContributors(repo, path);
+    }
+
+    // Add a link to the git remote node
+    fileNode.gitRemote___NODE = remoteId;
+
+    // Then create the node, as if it were created by the gatsby-source
+    // filesystem plugin.
+    return createNode(fileNode, {
+      name: `gatsby-source-filesystem`
     });
   };
 
