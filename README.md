@@ -46,8 +46,9 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
   it will default to a directory within the local Gatsby cache. Note that using
   a location outside the cache will prevent you changing the branch via
   gatsby-config.js. You will need to synchronise the branch of the local
-  checkout yourself. On the plus side, it will prevent your local repo
-  getting trashed when Gatsby clears the cache, which can speed things up.
+  checkout yourself. However if clones are painful and slow for you, then using
+  a custom location will prevent your local repo getting trashed when Gatsby
+  clears the cache, which should help.
 
 ### Example gatsby-config.js
 
@@ -93,7 +94,7 @@ Most git hosting providers support authentication via URL, either in the form of
   resolve: `gatsby-source-git`,
   options: {
     name: `my-repo`,
-    remote: `https://myuser:${process.env.GITHUB_TOKEN}@github.com/my-repo`,
+    remote: `https://myuser:${process.env.GITHUB_TOKEN}@github.com/myuser/my-repo`,
   },
 }
 ```
