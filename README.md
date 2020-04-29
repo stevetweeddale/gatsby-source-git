@@ -37,7 +37,7 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
 
 - `name`: A machine name label for each plugin instance.
 - `remote`: The url to clone from.
-- `branch` (optional): The branch to use. If none supplied, we try to use the
+- `branch` (optional): The branch or tag to use. If none supplied, we try to use the
   'default' branch.
 - `patterns` (optional): Passed to
   [fast-glob](https://github.com/mrmlnc/fast-glob) to determine which files get
