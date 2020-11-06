@@ -105,9 +105,7 @@ exports.sourceNodes = async (
       fileNode.gitRemote___NODE = remoteId;
       // Then create the node, as if it were created by the gatsby-source
       // filesystem plugin.
-      return createNode(fileNode, {
-        name: `gatsby-source-filesystem`
-      });
+      return createNode(fileNode);
     });
   };
 
