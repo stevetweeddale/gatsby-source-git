@@ -18,18 +18,18 @@
   "author": "Steve Tweeddale",
   "license": "MIT",
   "peerDependencies": {
-    "gatsby": ">2.0.0-alpha"
+    "gatsby": "^4.3.0"
   },
   "bugs": {
     "url": "https://github.com/stevetweeddale/gatsby-source-git/issues"
   },
   "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme",
   "dependencies": {
-    "fast-glob": "^2.2.3",
-    "fs-extra": "^5.0.0",
-    "gatsby-source-filesystem": "^2.1.19",
-    "git-url-parse": "^11.1.1",
-    "rimraf": "^2.6.2",
-    "simple-git": "^1.105.0"
+    "fast-glob": "^3.2.7",
+    "fs-extra": "^10.0.0",
+    "gatsby-source-filesystem": "^4.3.0",
+    "git-url-parse": "^11.6.0",
+    "rimraf": "^3.0.2",
+    "simple-git": "^2.48.0"
   }
 }
