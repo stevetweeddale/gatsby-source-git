@@ -17,7 +17,7 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
-async function getRepo(path, remote, branch) {
+async function getRepo(path, remote, branch, commit) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
   // in that case.
@@ -27,10 +27,18 @@ async function getRepo(path, remote, branch) {
       opts.push(`--branch`, branch);
     }
     await Git().clone(remote, path, opts);
+
+    if (typeof commit == `string`) {
+      const repo = await Git(path);
+      await repo
+        .fetch(['--unshallow'])
+        .then(() => repo.reset([`--hard`, commit]));
+    }
+
     return Git(path);
   } else if (await isAlreadyCloned(remote, path)) {
     const repo = await Git(path);
-    const target = await getTargetBranch(repo, branch);
+    const target = typeof commit == `string` ? commit : await getTargetBranch(repo, branch);
     // Refresh our shallow clone with the latest commit.
     await repo
       .fetch([`--depth`, `1`])
@@ -49,7 +57,7 @@ exports.sourceNodes = async (
     createContentDigest,
     reporter
   },
-  { name, remote, branch, patterns = `**`, local }
+  { name, remote, branch, patterns = `**`, local, commit }
 ) => {
   const programDir = store.getState().program.directory;
   const localPath = local || require("path").join(
@@ -62,7 +70,7 @@ exports.sourceNodes = async (
 
   let repo;
   try {
-    repo = await getRepo(localPath, remote, branch);
+    repo = await getRepo(localPath, remote, branch, commit);
   } catch (e) {
     return reporter.error(e);
   }
