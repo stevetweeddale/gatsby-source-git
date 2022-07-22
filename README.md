@@ -39,6 +39,7 @@ Ideally we'd use [nodegit](https://github.com/nodegit/nodegit), but it doesn't s
 - `remote`: The url to clone from.
 - `branch` (optional): The branch or tag to use. If none supplied, we try to use the
   'default' branch.
+- `commit` (optional): The commit to checkout after cloning
 - `patterns` (optional): Passed to
   [fast-glob](https://github.com/mrmlnc/fast-glob) to determine which files get
   sucked into the graph.
