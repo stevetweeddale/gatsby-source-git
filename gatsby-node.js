@@ -37,7 +37,7 @@ async function getRepo(path, remote, branch) {
       .then(() => repo.reset([`--hard`, target]));
     return repo;
   } else {
-    throw new Error(`Can't clone to target destination: ${localPath}`);
+    throw new Error(`Can't clone to target destination: ${path}`);
   }
 }
 
