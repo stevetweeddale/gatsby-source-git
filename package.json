@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/stevetweeddale/gatsby-source-git#readme",
   "dependencies": {
-    "fast-glob": "^2.2.3",
+    "fast-glob": "^3.3.1",
     "fs-extra": "^5.0.0",
     "gatsby-source-filesystem": "^2.1.19",
     "git-url-parse": "^11.1.1",
