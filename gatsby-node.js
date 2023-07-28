@@ -20,7 +20,8 @@ async function getTargetBranch(repo, branch) {
 async function getRepo(path, remote, branch) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
-  // in that case.
+  // in that case. Note, however, that if just the branch name changes, then the directory
+  // will still exist and we fall into the `isAlreadyCloned` block below.
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
     let opts = [`--depth`, `1`];
     if (typeof branch == `string`) {
@@ -31,6 +32,21 @@ async function getRepo(path, remote, branch) {
   } else if (await isAlreadyCloned(remote, path)) {
     const repo = await Git(path);
     const target = await getTargetBranch(repo, branch);
+    if (typeof branch == `string`) {
+      // First add the remote and fetch. This is a no-op if the branch hasn't changed but
+      // it's necessary when the configured branch has changed. This is because, due to
+      // the clone options used in the block above, only one remote branch is added, i.e.,
+      // the git config fetch refspec looks like this after cloning with a provided branch:
+      //
+      /// [remote "origin"]
+      //   url = git@github.com:<org>/<repo>.git
+      //   fetch = +refs/heads/<branch>:refs/remotes/origin/<branch>
+      await repo
+        .remote(['set-branches', 'origin', branch])
+        .then(() => repo.fetch('origin', branch))
+        .then(() => repo.checkout(branch))
+    }
+
     // Refresh our shallow clone with the latest commit.
     await repo
       .fetch([`--depth`, `1`])
