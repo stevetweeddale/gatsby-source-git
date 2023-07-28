@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "master"
+    commit-message:
+      prefix: "npm"
+      include: "scope"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1
