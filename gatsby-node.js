@@ -1,4 +1,4 @@
-const Git = require("simple-git/promise");
+const Git = require("simple-git");
 const fastGlob = require("fast-glob");
 const fs = require("fs");
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
