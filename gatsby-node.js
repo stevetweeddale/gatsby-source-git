@@ -1,8 +1,17 @@
 const Git = require("simple-git");
 const fastGlob = require("fast-glob");
-const fs = require("fs");
+const fs = require(`fs-extra`)
 const { createFileNode } = require("gatsby-source-filesystem/create-file-node");
 const GitUrlParse = require("git-url-parse");
+
+function getCachedRepoPath(name, programDir) {
+  return require("path").join(
+    programDir,
+    `.cache`,
+    `gatsby-source-git`,
+    name
+  );
+}
 
 async function isAlreadyCloned(remote, path) {
   const existingRemote = await Git(path).listRemote(["--get-url"]);
@@ -52,12 +61,7 @@ exports.sourceNodes = async (
   { name, remote, branch, patterns = `**`, local }
 ) => {
   const programDir = store.getState().program.directory;
-  const localPath = local || require("path").join(
-    programDir,
-    `.cache`,
-    `gatsby-source-git`,
-    name
-  );
+  const localPath = local || getCachedRepoPath(name, programDir);
   const parsedRemote = GitUrlParse(remote);
 
   let repo;
@@ -113,5 +117,23 @@ exports.sourceNodes = async (
 
   return Promise.all(repoFiles.map(createAndProcessNode));
 };
+
+exports.onPreInit = async ({ reporter, emitter, store }, pluginOptions) => {
+  emitter.on('DELETE_CACHE', async () => {
+    // The gatsby cache delete algorithm doesn't delete the hidden files, like 
+    // our .git directories, causing problems for our plugin;
+    // So we delete our cache ourself.
+    const programDir = store.getState().program.directory;
+    const localPath = getCachedRepoPath(pluginOptions.name, programDir);
+    try {
+      // Attempt to empty dir if remove fails,
+      // like when directory is mount point.
+      await fs.remove(localPath).catch(() => fs.emptyDir(localPath))
+      reporter.verbose(`Removed gatsby-source-git cache directory: ${localPath}`);
+    } catch (e) {
+      reporter.error(`Failed to remove gatsby-source-git files.`, e);
+    }
+  });
+}
 
 exports.onCreateNode;
