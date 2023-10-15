@@ -64,7 +64,9 @@ module.exports = {
         remote: `https://bitbucket.org/stevetweeddale/markdown-test.git`,
         branch: `develop`,
         // Only import the docs folder from a codebase.
-        patterns: `docs/**`
+        patterns: `docs/**`,
+        // The "--depth" command line argument of Git. Set to 0 if you need accurate file modified time.
+        fetchDepth: 1
       }
     },
     {
@@ -113,6 +115,8 @@ eg:
         extension
         dir
         modifiedTime
+        message
+        authorName
       }
     }
   }
@@ -130,6 +134,8 @@ Similarly, you can filter by the `name` you specified in the config by using
         extension
         dir
         modifiedTime
+        message
+        authorName
       }
     }
   }

@@ -26,13 +26,19 @@ async function getTargetBranch(repo, branch) {
   }
 }
 
-async function getRepo(path, remote, branch) {
+async function getRepo(path, remote, branch, fetchDepth) {
   // If the directory doesn't exist or is empty, clone. This will be the case if
   // our config has changed because Gatsby trashes the cache dir automatically
   // in that case. Note, however, that if just the branch name changes, then the directory
   // will still exist and we fall into the `isAlreadyCloned` block below.
+  let opts = [];
+
+  const depth = fetchDepth ?? 1
+  if(depth > 0) {
+    opts.push(`--depth`, depth);
+  }
+
   if (!fs.existsSync(path) || fs.readdirSync(path).length === 0) {
-    let opts = [`--depth`, `1`];
     if (typeof branch == `string`) {
       opts.push(`--branch`, branch);
     }
@@ -56,9 +62,8 @@ async function getRepo(path, remote, branch) {
         .then(() => repo.checkout(branch))
     }
 
-    // Refresh our shallow clone with the latest commit.
     await repo
-      .fetch([`--depth`, `1`])
+      .fetch(opts)
       .then(() => repo.reset([`--hard`, target]));
     return repo;
   } else {
@@ -74,7 +79,7 @@ exports.sourceNodes = async (
     createContentDigest,
     reporter
   },
-  { name, remote, branch, patterns = `**`, local }
+  { name, remote, branch, patterns = `**`, local, fetchDepth}
 ) => {
   const programDir = store.getState().program.directory;
   const localPath = local || getCachedRepoPath(name, programDir);
@@ -82,7 +87,7 @@ exports.sourceNodes = async (
 
   let repo;
   try {
-    repo = await getRepo(localPath, remote, branch);
+    repo = await getRepo(localPath, remote, branch, fetchDepth);
   } catch (e) {
     return reporter.error(e);
   }
@@ -121,6 +126,20 @@ exports.sourceNodes = async (
       name: name,
       path: localPath
     }).then(fileNode => {
+      const relativePath = fileNode.relativePath;
+      return repo.log({
+        file: relativePath
+      })
+      .then(log => {
+        const latest = log.latest;
+        const {date, message, author_name} = latest;
+        fileNode.modifiedTime = new Date(Date.parse(date)).toISOString();
+        fileNode.message = message;
+        fileNode.authorName = author_name;
+        return fileNode;
+      });
+    })
+    .then(fileNode => {
       // Add a link to the git remote node
       fileNode.gitRemote___NODE = remoteId;
       // Then create the node, as if it were created by the gatsby-source
@@ -136,7 +155,7 @@ exports.sourceNodes = async (
 
 exports.onPreInit = async ({ reporter, emitter, store }, pluginOptions) => {
   emitter.on('DELETE_CACHE', async () => {
-    // The gatsby cache delete algorithm doesn't delete the hidden files, like 
+    // The gatsby cache delete algorithm doesn't delete the hidden files, like
     // our .git directories, causing problems for our plugin;
     // So we delete our cache ourself.
     const programDir = store.getState().program.directory;
