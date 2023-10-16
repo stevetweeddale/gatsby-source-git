@@ -111,6 +111,7 @@ exports.sourceNodes = async (
     Object.assign(parsedRemote, {
       id: remoteId,
       sourceInstanceName: name,
+      patterns,
       parent: null,
       children: [],
       internal: {
